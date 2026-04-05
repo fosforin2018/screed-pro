@@ -24,7 +24,7 @@ jobs:
           java-version: '21'
       
       - name: Install dependencies
-        run: npm install  # ← Используем install вместо ci
+        run: npm install
       
       - name: Build web assets
         run: npx vite build

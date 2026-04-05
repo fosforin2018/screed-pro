@@ -1,0 +1,260 @@
+<!-- ЛИСТ ЗАМЕРА — Вариант 2 (Современный) -->
+<div class="pdf-hidden" id="pdfMeasTpl">
+  <div class="pdf-sheet pdf-modern" id="pdfMeasCont">
+    <div class="pdf-modern-banner">
+      <div class="banner-left">
+        <h1>ЛИСТ ЗАМЕРА</h1>
+        <div class="banner-sub">Расчёт устройства стяжки пола</div>
+      </div>
+      <div class="banner-right">
+        <div class="doc-badge" id="pdfMeasDocNum"></div>
+        <div class="doc-date" id="pdfMeasDate"></div>
+      </div>
+    </div>
+
+    <div class="pdf-modern-client">
+      <div class="client-item">
+        <span class="client-icon">📍</span>
+        <div>
+          <div class="client-label">Адрес объекта</div>
+          <div class="client-value" id="pdfMeasAddr"></div>
+        </div>
+      </div>
+      <div class="client-item">
+        <span class="client-icon">👤</span>
+        <div>
+          <div class="client-label">Заказчик</div>
+          <div class="client-value" id="pdfMeasClient"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pdf-modern-metrics">
+      <div class="modern-card">
+        <div class="card-icon">📐</div>
+        <div class="card-label">Площадь</div>
+        <div class="card-value" id="pdfMeasArea"></div>
+      </div>
+      <div class="modern-card">
+        <div class="card-icon">📏</div>
+        <div class="card-label">Средний слой</div>
+        <div class="card-value" id="pdfMeasLayer"></div>
+      </div>
+      <div class="modern-card">
+        <div class="card-icon">📦</div>
+        <div class="card-label">Объём</div>
+        <div class="card-value" id="pdfMeasVolume"></div>
+      </div>
+      <div class="modern-card primary">
+        <div class="card-icon">📊</div>
+        <div class="card-label">Индекс</div>
+        <div class="card-value" id="pdfMeasIndex"></div>
+      </div>
+    </div>
+
+    <div class="pdf-modern-section-title">Детализация по помещениям</div>
+    <table class="pdf-modern-table">
+      <thead>
+        <tr><th>Помещение</th><th style="text-align:right">Площадь</th><th style="text-align:right">Слой</th><th style="text-align:right">Итог</th></tr>
+      </thead>
+      <tbody id="pdfMeasRows"></tbody>
+    </table>
+
+    <div class="pdf-modern-correction" id="pdfMeasCorrection">
+      <div class="corr-icon">⚠️</div>
+      <div class="corr-text"><strong>Корректировки:</strong> <span id="pdfMeasCorrText"></span></div>
+    </div>
+
+    <div class="pdf-modern-footer">
+      <div class="footer-sig" id="pdfMeasSignatureBlock">
+        <div class="sig-line"></div>
+        <div class="sig-label" id="pdfMeasMasterName"></div>
+      </div>
+      <div class="footer-logo" id="pdfMeasLogoArea"></div>
+      <div style="font-size:9px; color:#9ca3af;">Сформировано: <span id="pdfMeasGenDate"></span></div>
+    </div>
+  </div>
+</div>
+
+<!-- КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ — Вариант 2 (Премиум) -->
+<div class="pdf-hidden" id="pdfCostTpl">
+  <div class="pdf-sheet pdf-cost-premium" id="pdfCostCont">
+    <div class="cost-prem-header">
+      <div class="cost-prem-brand">
+        <div class="prem-logo" id="pdfCostLogoArea"></div>
+        <div class="prem-brand-text">
+          <h1>КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ</h1>
+          <div class="prem-brand-sub">Профессиональный расчёт стоимости</div>
+        </div>
+      </div>
+      <div class="cost-prem-doc">
+        <div class="prem-doc-num" id="pdfCostNum"></div>
+        <div class="prem-doc-date" id="pdfCostDate"></div>
+      </div>
+    </div>
+
+    <div class="cost-prem-divider"></div>
+
+    <div class="cost-prem-object-card">
+      <div class="prem-obj-icon">🏠</div>
+      <div>
+        <div class="prem-obj-label">Объект</div>
+        <div class="prem-obj-value" id="pdfCostAddr"></div>
+      </div>
+    </div>
+
+    <div class="cost-prem-metrics">
+      <div class="prem-metric-box">
+        <div class="prem-metric-icon">📐</div>
+        <div class="prem-metric-val" id="pdfCostArea"></div>
+        <div class="prem-metric-label">Площадь</div>
+      </div>
+      <div class="prem-metric-box">
+        <div class="prem-metric-icon">📏</div>
+        <div class="prem-metric-val" id="pdfCostLayer"></div>
+        <div class="prem-metric-label">Слой</div>
+      </div>
+      <div class="prem-metric-box gold">
+        <div class="prem-metric-icon">💰</div>
+        <div class="prem-metric-val" id="pdfCostPpm"></div>
+        <div class="prem-metric-label">За м²</div>
+      </div>
+    </div>
+
+    <table class="cost-prem-table">
+      <thead>
+        <tr><th>Позиция</th><th>Количество</th><th>Цена</th><th style="text-align:right">Сумма</th></tr>
+      </thead>
+      <tbody id="pdfCostRows"></tbody>
+    </table>
+
+    <div class="cost-prem-total">
+      <div class="prem-total-label">ИТОГО:</div>
+      <div class="prem-total-value" id="pdfCostTotal"></div>
+    </div>
+
+    <div class="cost-prem-terms">
+      <div class="prem-terms-title">Условия сотрудничества:</div>
+      <div class="prem-terms-grid">
+        <div class="prem-term">✓ Срок действия: 14 дней</div>
+        <div class="prem-term">✓ Аванс: 50% при заключении</div>
+        <div class="prem-term">✓ Гарантия на работы: 12 месяцев</div>
+        <div class="prem-term">✓ Выезд на замер: бесплатно</div>
+      </div>
+    </div>
+
+    <div class="cost-prem-footer">
+      <div class="prem-footer-left">
+        <div class="prem-stamp">М.П.</div>
+      </div>
+      <div class="prem-footer-center">
+        <div class="prem-sig-line"></div>
+        <div class="prem-sig-name" id="pdfCostMasterName"></div>
+        <div class="prem-sig-role">Руководитель</div>
+      </div>
+      <div class="prem-footer-right">
+        <div class="prem-footer-date">Дата: <span id="pdfCostGenDate"></span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Стили для Листа замера (Вариант 2) */
+.pdf-modern { font-family: 'Inter', -apple-system, sans-serif; }
+.pdf-modern-banner { 
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: #fff; padding: 20px; border-radius: 8px; margin-bottom: 20px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.pdf-modern-banner h1 { margin: 0; font-size: 22px; }
+.pdf-modern-banner .banner-sub { font-size: 11px; opacity: 0.85; }
+.pdf-modern-banner .doc-badge { 
+  background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 20px;
+  font-size: 11px; font-weight: 600;
+}
+.pdf-modern-banner .doc-date { font-size: 10px; opacity: 0.75; text-align: right; margin-top: 4px; }
+.pdf-modern-client { display: flex; gap: 16px; margin-bottom: 20px; }
+.pdf-modern-client .client-item { 
+  flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px;
+  display: flex; align-items: center; gap: 10px;
+}
+.pdf-modern-client .client-icon { font-size: 20px; }
+.pdf-modern-client .client-label { font-size: 9px; color: #64748b; text-transform: uppercase; }
+.pdf-modern-client .client-value { font-size: 13px; font-weight: 600; color: #1e293b; }
+.pdf-modern-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+.pdf-modern-metrics .modern-card { 
+  background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; text-align: center;
+}
+.pdf-modern-metrics .modern-card.primary { background: #eff6ff; border-color: #3b82f6; }
+.pdf-modern-metrics .card-icon { font-size: 18px; margin-bottom: 4px; }
+.pdf-modern-metrics .card-label { font-size: 9px; color: #64748b; text-transform: uppercase; }
+.pdf-modern-metrics .card-value { font-size: 18px; font-weight: 700; color: #1e293b; }
+.pdf-modern-section-title { 
+  font-size: 12px; font-weight: 600; color: #475569; text-transform: uppercase;
+  letter-spacing: 0.5px; margin-bottom: 10px; padding-left: 4px;
+}
+.pdf-modern-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 16px; }
+.pdf-modern-table th { 
+  background: #1e293b; color: #fff; padding: 10px 8px; text-align: left; font-size: 10px;
+}
+.pdf-modern-table th:first-child { border-radius: 6px 0 0 0; }
+.pdf-modern-table th:last-child { border-radius: 0 6px 0 0; }
+.pdf-modern-table td { padding: 8px; border-bottom: 1px solid #f1f5f9; }
+.pdf-modern-table tr:hover { background: #f8fafc; }
+.pdf-modern-table tr:last-child td { font-weight: 700; background: #f1f5f9; }
+.pdf-modern-correction { 
+  background: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 0 6px 6px 0;
+  padding: 10px 14px; font-size: 11px; color: #92400e; margin-bottom: 20px;
+  display: flex; align-items: center; gap: 10px;
+}
+.pdf-modern-correction .corr-icon { font-size: 18px; }
+.pdf-modern-footer { 
+  display: flex; justify-content: space-between; align-items: flex-end;
+  border-top: 1px solid #e2e8f0; padding-top: 16px;
+}
+.pdf-modern-footer .footer-sig { text-align: center; }
+.pdf-modern-footer .sig-line { width: 120px; border-top: 1px solid #1e293b; margin-bottom: 4px; }
+.pdf-modern-footer .sig-label { font-size: 9px; color: #64748b; }
+
+/* Стили для КП (Вариант 2 - Премиум) */
+.pdf-cost-premium { font-family: 'Georgia', serif; color: #1e293b; }
+.cost-prem-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.cost-prem-header h1 { font-size: 20px; color: #1e3a8a; margin: 0; }
+.cost-prem-header .prem-brand-sub { font-size: 10px; color: #64748b; font-style: italic; }
+.cost-prem-header .prem-doc-num { font-size: 13px; color: #d4a017; font-weight: 700; }
+.cost-prem-header .prem-doc-date { font-size: 10px; color: #94a3b8; }
+.cost-prem-divider { height: 2px; background: linear-gradient(90deg, #d4a017, transparent); margin-bottom: 16px; }
+.cost-prem-object-card { display: flex; align-items: center; gap: 12px; background: #f8fafc; border-left: 4px solid #1e3a8a; padding: 12px; border-radius: 0 8px 8px 0; margin-bottom: 20px; }
+.cost-prem-object-card .prem-obj-icon { font-size: 24px; }
+.cost-prem-object-card .prem-obj-label { font-size: 9px; color: #64748b; text-transform: uppercase; }
+.cost-prem-object-card .prem-obj-value { font-size: 14px; font-weight: 600; }
+.cost-prem-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
+.cost-prem-metrics .prem-metric-box { text-align: center; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; }
+.cost-prem-metrics .prem-metric-box.gold { background: linear-gradient(135deg, #fef3c7, #fffbeb); border-color: #d4a017; }
+.cost-prem-metrics .prem-metric-icon { font-size: 20px; margin-bottom: 4px; }
+.cost-prem-metrics .prem-metric-val { font-size: 18px; font-weight: 700; color: #1e293b; }
+.cost-prem-metrics .prem-metric-label { font-size: 9px; color: #64748b; text-transform: uppercase; }
+.cost-prem-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 20px; }
+.cost-prem-table th { background: #1e3a8a; color: #d4a017; padding: 10px 8px; text-align: left; font-size: 10px; }
+.cost-prem-table td { padding: 8px; border-bottom: 1px solid #e2e8f0; }
+.cost-prem-table tr:nth-child(even) { background: #f8fafc; }
+.cost-prem-total { 
+  background: linear-gradient(135deg, #1e3a8a, #2563eb); color: #fff;
+  border-radius: 10px; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 20px;
+}
+.cost-prem-total .prem-total-label { font-size: 12px; opacity: 0.85; text-transform: uppercase; }
+.cost-prem-total .prem-total-value { font-size: 22px; font-weight: 700; }
+.cost-prem-terms { background: #f8fafc; border-radius: 10px; padding: 14px; margin-bottom: 20px; }
+.cost-prem-terms .prem-terms-title { font-size: 11px; font-weight: 600; color: #475569; margin-bottom: 8px; }
+.cost-prem-terms .prem-terms-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.cost-prem-terms .prem-term { font-size: 10px; color: #64748b; }
+.cost-prem-footer { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 30px; }
+.cost-prem-footer .prem-stamp { width: 70px; height: 70px; border: 2px dashed #cbd5e1; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #94a3b8; }
+.cost-prem-footer .prem-footer-center { text-align: center; }
+.cost-prem-footer .prem-sig-line { width: 130px; border-bottom: 1px solid #1e293b; margin-bottom: 6px; }
+.cost-prem-footer .prem-sig-name { font-size: 12px; font-weight: 600; }
+.cost-prem-footer .prem-sig-role { font-size: 9px; color: #64748b; }
+.cost-prem-footer .prem-footer-date { font-size: 10px; color: #64748b; }
+</style>

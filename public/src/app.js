@@ -251,38 +251,140 @@ function blobToBase64(blob) {
   });
 }
 
+// === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ ПОДПИСИ В PDF ===
+function setupMeasPDFSignature() {
+  const settings = getSettings();
+  const masterName = settings.masterName || 'Мастер-замерщик';
+  const logoUrl = settings.logoUrl || '';
+  
+  // Подпись в листе замера
+  document.getElementById('pdfMeasMasterName').textContent = masterName;
+  
+  // Логотип в листе замера
+  const logoArea = document.getElementById('pdfMeasLogoArea');
+  if (logoUrl) {
+    if (logoUrl.startsWith('http') || logoUrl.startsWith('data:image')) {
+      logoArea.innerHTML = `<img src="${logoUrl}" style="max-width:100px; max-height:60px; object-fit:contain;">`;
+    } else {
+      logoArea.innerHTML = `<div style="font-size:11px; font-weight:600;">${logoUrl}</div>`;
+    }
+  } else {
+    logoArea.innerHTML = '';
+  }
+}
+
+function setupCostPDFSignature() {
+  const settings = getSettings();
+  const masterName = settings.masterName || 'Руководитель';
+  const logoUrl = settings.logoUrl || '';
+  
+  // Подпись в КП
+  document.getElementById('pdfCostMasterName').textContent = masterName;
+  
+  // Логотип в КП
+  const logoArea = document.getElementById('pdfCostLogoArea');
+  if (logoUrl) {
+    if (logoUrl.startsWith('http') || logoUrl.startsWith('data:image')) {
+      logoArea.innerHTML = `<img src="${logoUrl}" style="max-width:120px; max-height:70px; object-fit:contain;">`;
+    } else {
+      logoArea.innerHTML = `<div style="font-size:12px; font-weight:600; color:#1e3a8a;">${logoUrl}</div>`;
+    }
+  } else {
+    logoArea.innerHTML = '<div style="width:120px; height:70px; background:#f8fafc; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:10px; color:#94a3b8;">LOGO</div>';
+  }
+}
+
+function setupPDFDocNumbers() {
+  const docNum = '№' + Math.floor(1000 + Math.random() * 9000);
+  const measDate = new Date().toLocaleDateString('ru-RU');
+  
+  document.getElementById('pdfMeasDocNum').textContent = docNum;
+  document.getElementById('pdfMeasDate').textContent = measDate;
+  document.getElementById('pdfCostNum').textContent = docNum;
+  document.getElementById('pdfCostDate').textContent = measDate;
+}
+
+// === ГЛАВНАЯ ФУНКЦИЯ ПОДГОТОВКИ PDF ===
 async function preparePDFData(tplId, contId, baseName, id=null){
   const m = id ? getDB().find(x=>x.id===id) : currentCalc?.m; if(!m) return;
+  
+  // === НАСТРОЙКА ПОДПИСЕЙ И НОМЕРОВ ДОКУМЕНТОВ ===
+  setupPDFDocNumbers();
+  setupMeasPDFSignature();
+  setupCostPDFSignature();
   
   // Заполнение данных для КП
   if(!id && currentCalc){
     const {s,area,layer,total,ppm,sandB,sandC,cemB,cemC,fibKg,fibC,filmC,meshC,totTons,trips,delC,liftC,labC} = currentCalc;
-    const docNum = 'КП-'+Math.floor(1000+Math.random()*9000);
-    document.getElementById('pdfCostNum').textContent = docNum;
-    document.getElementById('pdfCostDate').textContent = new Date().toLocaleDateString('ru-RU');
-    document.getElementById('pdfCostStrip').innerHTML = `<div class="pdf-info-strip-item"><div class="l">Объект</div><div class="v" style="font-size:11px">${m.address.length>25?m.address.substring(0,25)+'...':m.address}</div></div><div class="pdf-info-strip-item"><div class="l">Площадь</div><div class="v">${area.toFixed(1)} м²</div></div><div class="pdf-info-strip-item"><div class="l">Слой</div><div class="v">${layer.toFixed(1)} см</div></div><div class="pdf-info-strip-item"><div class="l">За м²</div><div class="v" style="color:#4b5563">${ppm.toFixed(0)} ₽</div></div>`;
+    
+    document.getElementById('pdfCostAddr').textContent = m.address;
+    document.getElementById('pdfCostArea').textContent = area.toFixed(1) + ' м²';
+    document.getElementById('pdfCostLayer').textContent = layer.toFixed(1) + ' см';
+    document.getElementById('pdfCostPpm').textContent = ppm.toFixed(0) + ' ₽';
+    
     const totalMixKg = area*layer*s.mixDensity; let meshRow='';
-    if(s.meshEnabled){ const mArea=s.meshArea>0?s.meshArea:area; meshRow=`<tr><td>Сетка</td><td>${mArea.toFixed(1)} м²</td><td>${s.meshPrice} ₽</td><td>${meshC.toLocaleString()} ₽</td></tr>`; }
-    document.getElementById('pdfCostRows').innerHTML = `<tr><td>Песок</td><td>${sandB} меш. (${(sandB*s.sandBagW)} кг)</td><td>${s.sandPrice} ₽</td><td>${sandC.toLocaleString()} ₽</td></tr><tr><td>Цемент</td><td>${cemB} меш. (${(cemB*s.cementBagW)} кг)</td><td>${s.cementPrice} ₽</td><td>${cemC.toLocaleString()} ₽</td></tr><tr><td>Фиброволокно</td><td>${fibKg.toFixed(1)} кг</td><td>${s.fiberPrice} ₽</td><td>${fibC.toFixed(0)} ₽</td></tr><tr><td>Плёнка</td><td>${area.toFixed(1)} м²</td><td>${s.filmPrice} ₽</td><td>${filmC.toFixed(0)} ₽</td></tr>${meshRow}<tr><td>Доставка</td><td>${trips} рейс. (${(totalMixKg/1000).toFixed(1)} т)</td><td>${s.deliveryPrice} ₽</td><td>${delC.toLocaleString()} ₽</td></tr><tr><td>Подъём материалов</td><td>${Math.ceil(totalMixKg/1000)} т</td><td>${s.liftPrice} ₽</td><td>${liftC.toLocaleString()} ₽</td></tr><tr style="font-weight:600"><td>Работа (стяжка)</td><td>${area.toFixed(1)} м²</td><td>${s.laborPrice} ₽/м²</td><td>${labC.toLocaleString()} ₽</td></tr>`;
-    const totalEl = document.getElementById('pdfCostTotal'); if(totalEl) totalEl.textContent = total.toLocaleString('ru-RU')+' ₽';
+    if(s.meshEnabled){ const mArea=s.meshArea>0?s.meshArea:area; meshRow=`<tr><td>Сетка</td><td>${mArea.toFixed(1)} м²</td><td>${s.meshPrice} ₽</td><td style="text-align:right">${meshC.toLocaleString()} ₽</td></tr>`; }
+    
+    document.getElementById('pdfCostRows').innerHTML = `
+      <tr><td>Песок</td><td>${sandB} меш. (${(sandB*s.sandBagW)} кг)</td><td>${s.sandPrice} ₽</td><td style="text-align:right">${sandC.toLocaleString()} ₽</td></tr>
+      <tr><td>Цемент</td><td>${cemB} меш. (${(cemB*s.cementBagW)} кг)</td><td>${s.cementPrice} ₽</td><td style="text-align:right">${cemC.toLocaleString()} ₽</td></tr>
+      <tr><td>Фиброволокно</td><td>${fibKg.toFixed(1)} кг</td><td>${s.fiberPrice} ₽</td><td style="text-align:right">${fibC.toFixed(0)} ₽</td></tr>
+      <tr><td>Плёнка</td><td>${area.toFixed(1)} м²</td><td>${s.filmPrice} ₽</td><td style="text-align:right">${filmC.toFixed(0)} ₽</td></tr>
+      ${meshRow}
+      <tr><td>Доставка</td><td>${trips} рейс. (${(totalMixKg/1000).toFixed(1)} т)</td><td>${s.deliveryPrice} ₽</td><td style="text-align:right">${delC.toLocaleString()} ₽</td></tr>
+      <tr><td>Подъём материалов</td><td>${Math.ceil(totalMixKg/1000)} т</td><td>${s.liftPrice} ₽</td><td style="text-align:right">${liftC.toLocaleString()} ₽</td></tr>
+      <tr style="font-weight:600"><td>Работа (стяжка)</td><td>${area.toFixed(1)} м²</td><td>${s.laborPrice} ₽/м²</td><td style="text-align:right">${labC.toLocaleString()} ₽</td></tr>
+    `;
+    
+    document.getElementById('pdfCostTotal').textContent = total.toLocaleString('ru-RU') + ' ₽';
     document.getElementById('pdfCostGenDate').textContent = new Date().toLocaleString('ru-RU');
   }
   
   // Заполнение данных для Листа замера
   if(id){
-    document.getElementById('pdfMeasDate').textContent = m.date||new Date().toLocaleDateString('ru-RU');
     document.getElementById('pdfMeasAddr').textContent = m.address;
-    document.getElementById('pdfMeasClient').textContent = m.client||'Не указан';
-    document.getElementById('pdfMeasArea').textContent = m.totalArea.toFixed(2)+' м²';
-    document.getElementById('pdfMeasLayer').textContent = m.avgLayer.toFixed(2)+' см';
-    const c = m.corrections||{globalMm:0,perRoomMm:0,enabled:false}, cBlock=document.getElementById('pdfMeasCorrection'), cText=document.getElementById('pdfMeasCorrText');
-    if(c.enabled&&(c.globalMm!==0||c.perRoomMm!==0)){ cBlock.style.display='block'; let t=''; if(c.globalMm!==0)t+=`Общая поправка: ${c.globalMm>0?'+':''}${c.globalMm} мм. `; if(c.perRoomMm!==0)t+=`К каждой комнате: ${c.perRoomMm>0?'+':''}${c.perRoomMm} мм.`; cText.textContent=t; } else { cBlock.style.display='none'; }
-    const tb = document.getElementById('pdfMeasRows'); tb.innerHTML=''; let idx=0;
-    m.rooms.forEach(r=>{ const a=parseFloat(r.area)||0, base=parseFloat(r.layer)||0, eff=getEff(base,c), res=a*eff; idx+=res; if(a>0) tb.innerHTML+=`<tr><td>${r.name}</td><td>${a.toFixed(2)}</td><td>${eff.toFixed(1)}</td><td>${res.toFixed(2)}</td></tr>`; });
+    document.getElementById('pdfMeasClient').textContent = m.client || 'Не указан';
+    document.getElementById('pdfMeasArea').textContent = m.totalArea.toFixed(2) + ' м²';
+    document.getElementById('pdfMeasLayer').textContent = m.avgLayer.toFixed(2) + ' см';
+    document.getElementById('pdfMeasVolume').textContent = (m.totalArea * m.avgLayer / 100).toFixed(2) + ' м³';
+    document.getElementById('pdfMeasIndex').textContent = (m.totalArea * m.avgLayer).toFixed(2);
+    
+    const c = m.corrections||{globalMm:0,perRoomMm:0,enabled:false};
+    const cBlock = document.getElementById('pdfMeasCorrection');
+    const cText = document.getElementById('pdfMeasCorrText');
+    
+    if(c.enabled && (c.globalMm!==0 || c.perRoomMm!==0)){
+      cBlock.style.display = 'flex';
+      let t='';
+      if(c.globalMm!==0) t += `Общая поправка: ${c.globalMm>0?'+':''}${c.globalMm} мм. `;
+      if(c.perRoomMm!==0) t += `К каждой комнате: ${c.perRoomMm>0?'+':''}${c.perRoomMm} мм.`;
+      cText.textContent = t;
+    } else {
+      cBlock.style.display = 'none';
+    }
+    
+    const tb = document.getElementById('pdfMeasRows'); 
+    tb.innerHTML = ''; 
+    let idx = 0;
+    
+    m.rooms.forEach((r, i) => {
+      const a = parseFloat(r.area)||0;
+      const base = parseFloat(r.layer)||0;
+      const eff = getEff(base, c);
+      const res = a * eff;
+      idx += res;
+      if(a > 0) {
+        tb.innerHTML += `<tr>
+          <td>${r.name}</td>
+          <td style="text-align:right">${a.toFixed(2)}</td>
+          <td style="text-align:right">${eff.toFixed(1)}</td>
+          <td style="text-align:right; font-weight:600">${res.toFixed(2)}</td>
+        </tr>`;
+      }
+    });
+    
     document.getElementById('pdfMeasIndex').textContent = idx.toFixed(2);
     document.getElementById('pdfMeasGenDate').textContent = new Date().toLocaleString('ru-RU');
-    const logoArea = document.getElementById('pdfLogoArea'), logoUrl = getSettings().logoUrl||'', masterName = getSettings().masterName||'';
-    if(logoUrl.trim()!==''){ if(logoUrl.startsWith('image')||logoUrl.startsWith('http')){ logoArea.innerHTML=`<img src="${logoUrl}" style="max-width:150px;max-height:80px;object-fit:contain;">`; if(masterName) logoArea.innerHTML+=`<div style="font-size:10px;margin-top:2px;font-weight:600;">${masterName}</div>`; } else { logoArea.innerHTML=`<div style="font-size:12px;font-weight:600;color:#4b5563;">${logoUrl}</div>`; } } else if(masterName){ logoArea.innerHTML=`<div style="font-size:11px;font-weight:600;text-align:right;margin-bottom:2px;">${masterName}</div><div class="sig-line">Подпись</div>`; } else { logoArea.innerHTML='<div class="sig-line">Подпись мастера</div>'; }
   }
   
   pdfData.name = `${baseName.replace(/[^a-zA-Zа-яА-Я0-9]/g,'_')}.pdf`;
@@ -343,7 +445,7 @@ async function startPDF(action) {
       // === СКАЧИВАНИЕ (в папку Документы) ===
       await window.Capacitor.Plugins.Filesystem.writeFile({
         path: fileName,
-        data: base64Data,
+         base64Data,
         directory: 'DOCUMENTS'
       });
       
@@ -424,3 +526,6 @@ window.importData = importData;
 window.showToast = showToast;
 window.saveSettings = saveSettings;
 window.clearAllData = clearAllData;
+window.setupMeasPDFSignature = setupMeasPDFSignature;
+window.setupCostPDFSignature = setupCostPDFSignature;
+window.setupPDFDocNumbers = setupPDFDocNumbers;

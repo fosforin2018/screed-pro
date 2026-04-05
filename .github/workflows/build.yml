@@ -13,26 +13,34 @@ jobs:
       
       - name: Setup Node
         uses: actions/setup-node@v4
-        with: { node-version: '18', cache: 'npm' }
+        with:
+          node-version: '18'
+          cache: 'npm'
       
       - name: Setup Java
         uses: actions/setup-java@v4
-        with: { distribution: 'temurin', java-version: '17' }
+        with:
+          distribution: 'temurin'
+          java-version: '17'
       
-      - name: Install & Build
-        run: |
-          npm ci
-          npx vite build
-          npx cap sync android
+      - name: Install dependencies
+        run: npm install  # ← Используем install вместо ci
+      
+      - name: Build web assets
+        run: npx vite build
+      
+      - name: Sync Capacitor
+        run: npx cap sync android
       
       - name: Build APK
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleDebug --no-daemon
       
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: app-debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 7

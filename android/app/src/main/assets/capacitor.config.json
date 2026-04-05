@@ -1,7 +1,7 @@
 {
 	"appId": "com.screedpro.app",
 	"appName": "Стяжка Pro",
-	"webDir": "public",
+	"webDir": "dist",
 	"bundledWebRuntime": false,
 	"server": {
 		"androidScheme": "https",

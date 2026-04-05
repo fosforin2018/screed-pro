@@ -1,12 +1,20 @@
 #!/data/data/com.termux/files/usr/bin/bash
 set -e
-cd ~/screed-pro
-echo "🔨 Сборка веб-части..."
+
+echo "🔨 [1/5] Сборка веб-части (Vite)..."
 npx vite build
-echo "📱 Синхронизация с Android..."
+
+echo "📱 [2/5] Синхронизация с Android (Capacitor)..."
 npx cap sync android
-echo "📤 Отправка на GitHub для сборки APK..."
+
+echo "📤 [3/5] Добавление изменений в Git..."
+cd ~/screed-pro
 git add .
-git commit -m "Update: $(date '+%Y-%m-%d %H:%M')" --allow-empty
+
+echo "📝 [4/5] Фиксация (Commit)..."
+git commit -m "Auto-update: $(date '+%Y-%m-%d %H:%M:%S')" --allow-empty
+
+echo "🚀 [5/5] Отправка на GitHub (Build)..."
 git push
-echo "✅ Готово! Откройте Actions на GitHub и скачайте новый APK из Artifacts."
+
+echo "✅ ГОТОВО! Откройте Actions на GitHub и скачайте новый APK через 5 минут."

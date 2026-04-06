@@ -2,8 +2,6 @@
 let rooms = [], editingId = null, roomUid = 0, currentCalc = null;
 let corrections = { globalMm: 3, perRoomMm: 0, enabled: true };
 
-console.log('✅ app.js loaded');
-
 // === БЕЗОПАСНЫЙ КАЛЬКУЛЯТОР ===
 function safeCalculate(str) {
     const cleanStr = str.replace(/[^0-9\.\+\-\*\/\(\)]/g, '');
@@ -14,12 +12,10 @@ function safeCalculate(str) {
 
 // === ИНИЦИАЛИЗАЦИЯ ===
 document.addEventListener('DOMContentLoaded', () => { 
-  console.log('🚀 DOMContentLoaded');
   loadSettings(); loadTheme();
   document.getElementById('measDate').value = new Date().toISOString().split('T')[0];
   document.getElementById('corrToggle').checked = true;
   toggleCorrection(); addRoom(); renderHistory(); filterForCost();
-  console.log('✅ Init complete');
 });
 
 // === ТЕМЫ ===
@@ -238,21 +234,14 @@ function calculateCost(id){
 }
 
 // === 📄 PDF МОДАЛЬНОЕ ОКНО ===
-let currentPdfBlob = null;
-let currentPdfName = '';
-
 function closeModal(){ 
   const modal = document.getElementById('pdfModal');
   if(modal) modal.classList.remove('show');
 }
 
 function showMeasPDFModal(id){
-  console.log('📄 showMeasPDFModal called with id:', id);
   const modal = document.getElementById('pdfModal');
-  if(!modal) {
-    console.error('❌ Modal element not found!');
-    return showToast('⚠️ Ошибка интерфейса');
-  }
+  if(!modal) return showToast('⚠️ Ошибка интерфейса');
   
   document.getElementById('modalTitle').textContent='📄 Лист замера';
   document.getElementById('modalText').textContent='Нажмите кнопку для создания файла';
@@ -260,45 +249,22 @@ function showMeasPDFModal(id){
   const m = getDB().find(x=>x.id===id);
   if(!m) return showToast('⚠️ Замер не найден');
   
-  // Заполняем данные PDF
   fillMeasPDF(m);
-  
-  // Показываем кнопки
-  const actions = document.getElementById('modalActions');
-  actions.innerHTML = `
-    <button class="modal-btn modal-btn-primary" onclick="generateAndDownloadPDF('meas', '${id}')">📥 Скачать PDF</button>
-    <button class="modal-btn modal-btn-success" onclick="generateAndSharePDF('meas', '${id}')">📤 Отправить</button>
-    <button class="modal-btn" onclick="closeModal()">Отмена</button>
-  `;
   
   modal.classList.add('show');
   showToast('✅ Окно открыто');
 }
 
 function showCostPDFModal(){
-  console.log('💰 showCostPDFModal called');
   if(!currentCalc) return showToast('⚠️ Сначала выполните расчёт');
   
   const modal = document.getElementById('pdfModal');
-  if(!modal) {
-    console.error('❌ Modal element not found!');
-    return showToast('⚠️ Ошибка интерфейса');
-  }
+  if(!modal) return showToast('⚠️ Ошибка интерфейса');
   
   document.getElementById('modalTitle').textContent='💰 Коммерческое предложение';
   document.getElementById('modalText').textContent='Нажмите кнопку для создания файла';
   
-  // Заполняем данные PDF
   fillCostPDF();
-  
-  // Показываем кнопки
-  const actions = document.getElementById('modalActions');
-  actions.innerHTML = `
-    <button class="modal-btn modal-btn-primary" onclick="generateAndDownloadPDF('cost')">📥 Скачать PDF</button>
-    <button class="modal-btn modal-btn-success" onclick="generateAndSharePDF('cost')">📤 Отправить</button>
-    <button class="modal-btn" onclick="closeModal()">Отмена</button>
-  `;
-  
   modal.classList.add('show');
   showToast('✅ Окно открыто');
 }
@@ -343,7 +309,6 @@ function fillMeasPDF(m){
   });
   
   document.getElementById('pdfMeasIndex').textContent = idx.toFixed(2);
-  
   const settings = getSettings();
   document.getElementById('pdfMeasMasterName').textContent = settings.masterName || 'Мастер-замерщик';
 }
@@ -381,20 +346,15 @@ function fillCostPDF(){
   document.getElementById('pdfCostTotal').textContent = total.toLocaleString('ru-RU') + ' ₽';
 }
 
+// === ГЕНЕРАЦИЯ И СКАЧИВАНИЕ PDF ===
 async function generateAndDownloadPDF(type, id) {
-  console.log('📥 generateAndDownloadPDF called', type, id);
   showToast('⏳ Генерация PDF...');
   
   const tplId = type === 'meas' ? 'pdfMeasTpl' : 'pdfCostTpl';
-  const contId = type === 'meas' ? 'pdfMeasCont' : 'pdfCostCont';
   const baseName = type === 'meas' ? 'ЛистЗамера' : 'Расчёт';
-  
   const tpl = document.getElementById(tplId);
-  if(!tpl) {
-    console.error('❌ Template not found:', tplId);
-    return showToast('⚠️ Шаблон не найден');
-  }
   
+  if(!tpl) return showToast('⚠️ Шаблон не найден');
   tpl.style.display = 'block';
   
   const opt = {
@@ -410,7 +370,6 @@ async function generateAndDownloadPDF(type, id) {
     tpl.style.display = 'none';
     closeModal();
     
-    // Скачивание
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -422,26 +381,21 @@ async function generateAndDownloadPDF(type, id) {
     
     showToast('✅ PDF сохранён');
   } catch(e){ 
-    console.error('❌ PDF Error:',e); 
+    console.error('PDF Error:',e); 
     tpl.style.display='none'; 
     showToast('⚠️ Ошибка: ' + e.message); 
   }
 }
 
+// === ГЕНЕРАЦИЯ И ОТПРАВКА PDF ===
 async function generateAndSharePDF(type, id) {
-  console.log('📤 generateAndSharePDF called', type, id);
   showToast('⏳ Генерация PDF...');
   
   const tplId = type === 'meas' ? 'pdfMeasTpl' : 'pdfCostTpl';
-  const contId = type === 'meas' ? 'pdfMeasCont' : 'pdfCostCont';
   const baseName = type === 'meas' ? 'ЛистЗамера' : 'Расчёт';
-  
   const tpl = document.getElementById(tplId);
-  if(!tpl) {
-    console.error('❌ Template not found:', tplId);
-    return showToast('⚠️ Шаблон не найден');
-  }
   
+  if(!tpl) return showToast('⚠️ Шаблон не найден');
   tpl.style.display = 'block';
   
   const opt = {
@@ -457,18 +411,12 @@ async function generateAndSharePDF(type, id) {
     tpl.style.display = 'none';
     closeModal();
     
-    // Попытка поделиться
     const file = new File([blob], opt.filename, { type: 'application/pdf' });
     
     if (navigator.share && navigator.canShare({ files: [file] })) {
-      await navigator.share({
-        files: [file],
-        title: opt.filename,
-        text: 'Документ из Стяжка Pro'
-      });
+      await navigator.share({ files: [file], title: opt.filename, text: 'Документ из Стяжка Pro' });
       showToast('📤 Отправлено');
     } else {
-      // Fallback - скачивание
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -477,12 +425,33 @@ async function generateAndSharePDF(type, id) {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      showToast('✅ PDF сохранён (поделиться недоступно)');
+      showToast('✅ PDF сохранён');
     }
   } catch(e){ 
-    console.error('❌ Share Error:',e); 
+    console.error('Share Error:',e); 
     tpl.style.display='none'; 
     showToast('⚠️ Ошибка: ' + e.message); 
+  }
+}
+
+// === 📄 ОБЁРТКА ДЛЯ КНОПОК В HTML (startPDF) ===
+function startPDF(action) {
+  const title = document.getElementById('modalTitle')?.textContent || '';
+  const isMeas = title.includes('Лист замера');
+  
+  if (isMeas) {
+    const db = getDB();
+    const m = db[db.length - 1];
+    if (m && m.id) {
+      if (action === 'download') generateAndDownloadPDF('meas', m.id);
+      else generateAndSharePDF('meas', m.id);
+    } else {
+      showToast('⚠️ Нет данных для экспорта');
+    }
+  } else {
+    if (!currentCalc) return showToast('⚠️ Сначала выполните расчёт');
+    if (action === 'download') generateAndDownloadPDF('cost');
+    else generateAndSharePDF('cost');
   }
 }
 
@@ -517,7 +486,7 @@ function showToast(msg){
   t._t=setTimeout(()=>t.classList.remove('show'),3000); 
 }
 
-// === 🚨 ГЛОБАЛЬНЫЙ ЭКСПОРТ ===
+// === 🚨 ГЛОБАЛЬНЫЙ ЭКСПОРТ ВСЕХ ФУНКЦИЙ ===
 window.toggleTheme = toggleTheme;
 window.switchTab = switchTab;
 window.addRoom = addRoom;
@@ -539,46 +508,9 @@ window.showMeasPDFModal = showMeasPDFModal;
 window.showCostPDFModal = showCostPDFModal;
 window.generateAndDownloadPDF = generateAndDownloadPDF;
 window.generateAndSharePDF = generateAndSharePDF;
+window.startPDF = startPDF;
 window.exportData = exportData;
 window.importData = importData;
 window.showToast = showToast;
 window.saveSettings = saveSettings;
 window.clearAllData = clearAllData;
-
-console.log('✅ All functions exported to window');
-
-// === 📄 PDF: ОБЁРТКА ДЛЯ СТАТИЧЕСКИХ КНОПОК В HTML (совместимость) ===
-function startPDF(action) {
-  console.log('🔄 startPDF wrapper called:', action);
-  
-  const title = document.getElementById('modalTitle')?.textContent || '';
-  const isMeas = title.includes('Лист замера');
-  
-  // Для листа замера
-  if (isMeas) {
-    const db = getDB();
-    const m = db[db.length - 1]; // Берём последний сохранённый замер
-    if (m && m.id) {
-      if (action === 'download' || action === 'save') {
-        generateAndDownloadPDF('meas', m.id);
-      } else {
-        generateAndSharePDF('meas', m.id);
-      }
-    } else {
-      showToast('⚠️ Нет данных для экспорта');
-    }
-  } 
-  // Для коммерческого предложения
-  else {
-    if (!currentCalc) return showToast('⚠️ Сначала выполните расчёт');
-    if (action === 'download' || action === 'save') {
-      generateAndDownloadPDF('cost');
-    } else {
-      generateAndSharePDF('cost');
-    }
-  }
-}
-
-// Экспортируем функцию глобально
-window.startPDF = startPDF;
-console.log('✅ startPDF wrapper exported');

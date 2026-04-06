@@ -597,3 +597,25 @@ function startPDF(action) {
   }
 }
 window.startPDF = startPDF;
+
+// === 📄 ПРОСТАЯ ПЕЧАТЬ (открывает print.html) ===
+function openPrintPage(type, id) {
+  // Сохраняем currentCalc в sessionStorage для доступа из print.html
+  if (window.currentCalc) {
+    sessionStorage.setItem('currentCalc', JSON.stringify(window.currentCalc));
+  }
+  
+  // Открываем print.html с параметрами
+  const url = `print.html?type=${type}${id ? '&id='+id : ''}`;
+  window.open(url, '_blank');
+}
+
+// Заменяем showMeasPDFModal и showCostPDFModal на простые вызовы
+window.showMeasPDFModal = function(id) {
+  openPrintPage('meas', id);
+};
+
+window.showCostPDFModal = function() {
+  if (!window.currentCalc) return showToast('⚠️ Сначала выполните расчёт');
+  openPrintPage('cost');
+};

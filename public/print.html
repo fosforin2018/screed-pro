@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="printTitle">Документ</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+    .header { text-align: center; border-bottom: 3px solid #2563eb; padding-bottom: 15px; margin-bottom: 20px; }
+    .header h1 { color: #1e3a8a; margin: 0; }
+    .info { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; background: #f3f4f6; padding: 15px; border-radius: 8px; }
+    .info div { font-size: 14px; }
+    .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+    .metric { background: #2563eb; color: white; padding: 10px; border-radius: 6px; text-align: center; }
+    .metric strong { display: block; font-size: 16px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    th { background: #1e3a8a; color: white; padding: 8px; text-align: left; }
+    td { padding: 8px; border-bottom: 1px solid #e5e7eb; }
+    tr:nth-child(even) { background: #f9fafb; }
+    .total { background: #eff6ff !important; font-weight: bold; }
+    .total td { border-top: 2px solid #2563eb; padding-top: 12px; color: #1e3a8a; }
+    .btn { padding: 12px 24px; background: #2563eb; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 10px 5px; }
+    @media print { .no-print { display: none; } body { padding: 0; } }
+  </style>
+</head>
+<body>
+  <div id="content"></div>
+  <div class="no-print" style="text-align: center; margin-top: 30px;">
+    <button class="btn" onclick="window.print()">🖨 Печать / Сохранить как PDF</button>
+    <button class="btn" onclick="window.close()" style="background: #6b7280;">Закрыть</button>
+  </div>
+  <script>
+    // Загружаем данные из localStorage
+    const db = JSON.parse(localStorage.getItem('screed_final') || '[]');
+    const currentCalc = JSON.parse(sessionStorage.getItem('currentCalc') || 'null');
+    const urlParams = new URLSearchParams(window.location.search);
+    const type = urlParams.get('type');
+    const id = urlParams.get('id');
+    
+    let html = '';
+    
+    if (type === 'meas' && id) {
+      const m = db.find(x => x.id === id);
+      if (m) {
+        html = `
+          <div class="header"><h1>📐 ЛИСТ ЗАМЕРА</h1><div>Расчёт устройства стяжки пола</div></div>
+          <div class="info">
+            <div><strong>Адрес:</strong> ${m.address}</div>
+            <div><strong>Заказчик:</strong> ${m.client || '—'}</div>
+            <div><strong>Дата:</strong> ${m.date}</div>
+            <div><strong>№:</strong> ${'№'+Math.floor(1000+Math.random()*9000)}</div>
+          </div>
+          <div class="metrics">
+            <div class="metric"><span>Площадь</span><strong>${m.totalArea.toFixed(2)} м²</strong></div>
+            <div class="metric"><span>Слой</span><strong>${m.avgLayer.toFixed(2)} см</strong></div>
+            <div class="metric"><span>Объём</span><strong>${(m.totalArea*m.avgLayer/100).toFixed(2)} м³</strong></div>
+            <div class="metric"><span>Индекс</span><strong>${(m.totalArea*m.avgLayer).toFixed(2)}</strong></div>
+          </div>
+          <table>
+            <thead><tr><th>Помещение</th><th>Площадь, м²</th><th>Слой, см</th><th>Итог (S×h)</th></tr></thead>
+            <tbody>
+              ${m.rooms.map(r => {
+                const a = parseFloat(r.area)||0, l = parseFloat(r.layer)||0;
+                return a>0 ? `<tr><td>${r.name}</td><td>${a.toFixed(2)}</td><td>${l.toFixed(1)}</td><td><strong>${(a*l).toFixed(2)}</strong></td></tr>` : '';
+              }).join('')}
+            </tbody>
+          </table>
+        `;
+      }
+    } else if (type === 'cost' && currentCalc) {
+      const {m,s,area,layer,total,ppm,sandB,sandC,cemB,cemC,fibKg,fibC,filmC,meshC,meshArea,totTons,trips,delC,liftC,labC} = currentCalc;
+      html = `
+        <div class="header"><h1>💰 КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ</h1><div>Расчёт стоимости устройства стяжки пола</div></div>
+        <div class="info">
+          <div><strong>Объект:</strong> ${m.address}</div>
+          <div><strong>Площадь:</strong> ${area.toFixed(2)} м²</div>
+          <div><strong>Слой:</strong> ${layer.toFixed(1)} см</div>
+          <div><strong>Цена/м²:</strong> ${ppm.toFixed(0)} ₽</div>
+        </div>
+        <table>
+          <thead><tr><th>Позиция</th><th>Расчёт</th><th style="text-align:right">Сумма</th></tr></thead>
+          <tbody>
+            <tr><td>Песок</td><td>${sandB} меш.</td><td style="text-align:right">${sandC.toLocaleString('ru-RU')} ₽</td></tr>
+            <tr><td>Цемент</td><td>${cemB} меш.</td><td style="text-align:right">${cemC.toLocaleString('ru-RU')} ₽</td></tr>
+            <tr><td>Фибра</td><td>${fibKg.toFixed(2)} кг</td><td style="text-align:right">${fibC.toFixed(0)} ₽</td></tr>
+            <tr><td>Плёнка</td><td>${area.toFixed(2)} м²</td><td style="text-align:right">${filmC.toFixed(0)} ₽</td></tr>
+            ${s.meshEnabled && meshArea>0 ? `<tr><td>Сетка</td><td>${meshArea.toFixed(2)} м²</td><td style="text-align:right">${meshC.toLocaleString('ru-RU')} ₽</td></tr>` : ''}
+            <tr><td>Доставка</td><td>${trips} рейс.</td><td style="text-align:right">${delC.toLocaleString('ru-RU')} ₽</td></tr>
+            <tr><td>Подъём</td><td>${Math.ceil(totTons)} т</td><td style="text-align:right">${liftC.toLocaleString('ru-RU')} ₽</td></tr>
+            <tr><td>Работа</td><td>${area.toFixed(2)} м²</td><td style="text-align:right">${labC.toLocaleString('ru-RU')} ₽</td></tr>
+            <tr class="total"><td colspan="2">ИТОГО</td><td style="text-align:right">${total.toLocaleString('ru-RU')} ₽</td></tr>
+          </tbody>
+        </table>
+        <div style="margin-top: 20px; padding: 15px; background: #f3f4f6; border-radius: 8px; font-size: 12px; color: #6b7280;">
+          ✓ Действительно 14 дней с даты формирования
+        </div>
+      `;
+    }
+    
+    document.getElementById('content').innerHTML = html;
+    document.getElementById('printTitle').textContent = type === 'meas' ? 'Лист замера' : 'Коммерческое предложение';
+  </script>
+</body>
+</html>

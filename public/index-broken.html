@@ -7,6 +7,8 @@
   <title>Стяжка — Калькулятор Pro</title>
   <link rel="stylesheet" href="/assets/css/main.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" crossorigin="anonymous"></script>
+  <!-- Capacitor (обязательно для нативных плагинов) -->
+  <script src="https://cdn.jsdelivr.net/npm/@capacitor/core@6/dist/capacitor.js"></script>
 </head>
 <body>
 
@@ -77,11 +79,29 @@
   <div class="settings-group"><h3>⚖️ Смесь</h3><div class="setting-row"><label>Песок:Цемент</label><input type="number" id="ratio" value="3" oninput="saveSettings()"></div><div class="setting-row"><label>Плотность (кг/м²/см)</label><input type="number" id="mixDensity" value="20" oninput="saveSettings()"></div></div>
   <div class="settings-group"><h3>🚚 Логистика</h3><div class="setting-row"><label>Грузоподъёмность (т)</label><input type="number" id="truckCap" value="5" oninput="saveSettings()"></div><div class="setting-row"><label>Цена за рейс (₽)</label><input type="number" id="deliveryPrice" value="4000" oninput="saveSettings()"></div><div class="setting-row"><label>Подъём за тонну (₽)</label><input type="number" id="liftPrice" value="800" oninput="saveSettings()"></div></div>
   <div class="settings-group"><h3>📐 Доп. материалы</h3><div class="setting-row"><label>Фибра (г/м²)</label><input type="number" id="fiberG" value="50" oninput="saveSettings()"></div><div class="setting-row"><label>Фибра (₽/кг)</label><input type="number" id="fiberPrice" value="450" oninput="saveSettings()"></div><div class="setting-row"><label>Плёнка (₽/м²)</label><input type="number" id="filmPrice" value="25" oninput="saveSettings()"></div></div>
+  
+  <!-- НОВЫЙ БЛОК ДЛЯ СЕТКИ -->
+  <div class="settings-group">
+    <h3>🕸️ Сетка армирующая</h3>
+    <div class="setting-row" style="margin-bottom: 12px;">
+      <label>Добавлять в расчёт</label>
+      <label class="switch">
+        <input type="checkbox" id="meshEnabled" checked onchange="saveSettings()">
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="setting-row"><label>Цена за м² (₽)</label><input type="number" id="meshPrice" value="80" oninput="saveSettings()"></div>
+    <div class="field-group" style="margin-top: 8px;">
+      <label>Площадь сетки (м²) <span style="font-size:10px; color:var(--text-secondary)">(0 = равна площади пола)</span></label>
+      <input type="number" id="meshArea" value="0" step="0.1" oninput="saveSettings()">
+    </div>
+  </div>
+
   <div class="settings-group"><h3>👷 Работа</h3><div class="setting-row"><label>Цена за м² (₽)</label><input type="number" id="laborPrice" value="450" oninput="saveSettings()"></div></div>
   <div class="settings-group">
     <h3>📂 Лист замера / Логотип</h3>
-    <div class="field-group" style="margin-bottom:10px;"><label>URL логотипа</label><input type="text" id="logoUrl" value="" placeholder="https://..." oninput="saveSettings()"></div>
-    <div class="setting-row"><label>Имя мастера</label><input type="text" id="masterName" value="" placeholder="Ваше имя" oninput="saveSettings()"></div>
+    <div class="field-group" style="margin-bottom:10px;"><label>URL логотипа (картинка) или Base64 код</label><input type="text" id="logoUrl" value="" placeholder="https://..." oninput="saveSettings()"></div>
+    <div class="setting-row"><label>Имя мастера (для подписи)</label><input type="text" id="masterName" value="" placeholder="Ваше имя" oninput="saveSettings()"></div>
   </div>
   <div class="settings-group"><h3>📂 Данные</h3><div class="io-buttons"><button class="btn btn-secondary" onclick="exportData()">📤 Экспорт</button><button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">📥 Импорт</button></div><input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(this)"></div>
   <button class="btn" style="background:var(--danger); width:100%; margin-top:10px;" onclick="clearAllData()">🗑 Сбросить всё</button>
@@ -93,41 +113,62 @@
     <h3 id="modalTitle">Лист замера</h3>
     <p id="modalText">Нажмите кнопку для создания файла</p>
     <div class="modal-btns" id="modalActions">
-      <button class="modal-btn modal-btn-primary" id="btnPdfDownload">📥 Скачать PDF</button>
-      <button class="modal-btn modal-btn-success" id="btnPdfShare">📤 Отправить</button>
+      <button class="modal-btn modal-btn-primary" onclick="startPDF('download')">📥 Скачать PDF</button>
+      <button class="modal-btn modal-btn-success" onclick="startPDF('share')">📤 Отправить</button>
       <button class="modal-btn" onclick="closeModal()">Отмена</button>
     </div>
   </div>
 </div>
 
-<!-- PDF TEMPLATES (встроены, скрыты) -->
+<!-- PDF TEMPLATES -->
 <div class="pdf-hidden" id="pdfMeasTpl">
   <div class="pdf-sheet" id="pdfMeasCont">
-    <div class="pdf-meas-header"><h1>📐 ЛИСТ ЗАМЕРА</h1><div class="sub">Устройство стяжки пола</div><div id="pdfMeasDate"></div></div>
+    <div class="pdf-meas-header"><h1>📐 ЛИСТ ЗАМЕРА</h1><div class="sub">Устройство стяжки пола</div><div id="pdfMeasDate" style="margin-top:4px; font-size:10px; color:#666;"></div></div>
     <div class="pdf-info">
       <div><div class="l">Адрес</div><div class="v" id="pdfMeasAddr"></div></div>
       <div><div class="l">Заказчик</div><div class="v" id="pdfMeasClient"></div></div>
-      <div><div class="l">Площадь</div><div class="v" id="pdfMeasArea"></div></div>
-      <div><div class="l">Слой</div><div class="v" id="pdfMeasLayer"></div></div>
+      <div><div class="l">Общая площадь</div><div class="v" id="pdfMeasArea"></div></div>
+      <div><div class="l">Средний слой</div><div class="v" id="pdfMeasLayer"></div></div>
     </div>
-    <div class="pdf-corr-block" id="pdfMeasCorrection" style="display:none;"><h4>⚙️ Корректировки:</h4><div id="pdfMeasCorrText"></div></div>
-    <table class="pdf-room-table"><thead><tr><th>Помещение</th><th>Площадь</th><th>Слой</th><th>Итог</th></tr></thead><tbody id="pdfMeasRows"></tbody></table>
-    <div class="pdf-total-box">Индекс: <span id="pdfMeasIndex"></span></div>
-    <div style="margin-top:30px;display:flex;justify-content:space-between;"><div style="font-size:9px;">Дата: <span id="pdfMeasGenDate"></span></div><div id="pdfLogoArea"></div></div>
+    <div class="pdf-corr-block" id="pdfMeasCorrection" style="display:none;"><h4>⚙️ Учтены корректировки:</h4><div id="pdfMeasCorrText"></div></div>
+    <table class="pdf-room-table"><thead><tr><th>Помещение</th><th>Площадь, м²</th><th>Слой, см</th><th>Итог (S×h)</th></tr></thead><tbody id="pdfMeasRows"></tbody></table>
+    <div class="pdf-total-box">Общий индекс: <span id="pdfMeasIndex"></span></div>
+    
+    <div style="margin-top: 30px; display: flex; justify-content: space-between; align-items: flex-end;">
+       <div style="font-size:9px; color:#6b7280;">Дата формирования: <span id="pdfMeasGenDate"></span></div>
+       <div class="pdf-logo-area" id="pdfLogoArea"></div>
+    </div>
   </div>
 </div>
 
 <div class="pdf-hidden" id="pdfCostTpl">
   <div class="pdf-sheet" id="pdfCostCont">
-    <div class="pdf-sheet-header"><div><h1>КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ</h1></div><div class="sub"><div id="pdfCostNum"></div><div id="pdfCostDate"></div></div></div>
+    <div class="pdf-sheet-header">
+      <div><h1>КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ</h1><div style="font-size:10px; color:#6b7280; margin-top:2px;">Расчёт стоимости устройства стяжки пола</div></div>
+      <div class="sub"><div id="pdfCostNum" style="font-weight:700; color:#4b5563;"></div><div id="pdfCostDate" style="margin-top:2px;"></div></div>
+    </div>
+    
     <div class="pdf-info-strip" id="pdfCostStrip"></div>
-    <table class="pdf-room-table"><thead><tr><th>Позиция</th><th>Кол-во</th><th>Цена</th><th>Сумма</th></tr></thead><tbody id="pdfCostRows"></tbody><tfoot><tr id="pdfTotalRow" style="background:#eff6ff;font-weight:bold;"><td colspan="3">ИТОГО:</td><td style="text-align:right;font-size:18px;" id="pdfCostTotal">0 ₽</td></tr></tfoot></table>
-    <div class="pdf-footer"><span>14 дней</span><span>Дата: <span id="pdfCostGenDate"></span></span></div>
+    
+    <!-- ЕДИНАЯ ТАБЛИЦА -->
+    <table class="pdf-room-table" id="pdfCostTable">
+      <thead><tr><th>Позиция</th><th>Кол-во</th><th>Цена</th><th>Сумма</th></tr></thead>
+      <tbody id="pdfCostRows"></tbody>
+      <!-- ИТОГОВАЯ СТРОКА ВНУТРИ ТАБЛИЦЫ -->
+      <tfoot>
+        <tr id="pdfTotalRow" style="background-color: #eff6ff; font-weight: bold;">
+          <td colspan="3" style="padding: 12px 4px; font-size: 14px; color: #1e3a8a; border-top: 2px solid #2563eb;">ИТОГО ЗА РАБОТЫ И МАТЕРИАЛЫ:</td>
+          <td style="padding: 12px 4px; font-size: 18px; font-weight: 800; color: #1e40af; text-align: right; border-top: 2px solid #2563eb;" id="pdfCostTotal">0 ₽</td>
+        </tr>
+      </tfoot>
+    </table>
+    
+    <div class="pdf-footer">
+      <span>Действительно 14 дней</span>
+      <span>Дата: <span id="pdfCostGenDate"></span></span>
+    </div>
   </div>
 </div>
-
-<!-- Контейнер для скрытых шаблонов -->
-<div id="pdfTemplatesContainer" class="pdf-hidden"></div>
 
 <nav class="bottom-nav">
   <button class="nav-btn active" onclick="switchTab('pageMeasurements')"><span class="nav-icon">📐</span>Замеры</button>
@@ -138,6 +179,6 @@
 </nav>
 <div class="toast" id="toast"></div>
 
-<script src="/src/app.js"></script>
+<script type="module" src="/src/app.js"></script>
 </body>
 </html>

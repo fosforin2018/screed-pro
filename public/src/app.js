@@ -548,54 +548,12 @@ window.clearAllData = clearAllData;
 console.log('✅ All functions exported to window');
 
 // === 📄 PDF: ОБЁРТКА ДЛЯ СТАТИЧЕСКИХ КНОПОК В HTML (совместимость) ===
-function startPDF(action) {
-  console.log('🔄 startPDF wrapper called:', action);
-  
-  const title = document.getElementById('modalTitle')?.textContent || '';
-  const isMeas = title.includes('Лист замера');
-  
-  // Для листа замера
-  if (isMeas) {
-    const db = getDB();
-    const m = db[db.length - 1]; // Берём последний сохранённый замер
-    if (m && m.id) {
-      if (action === 'download' || action === 'save') {
-        generateAndDownloadPDF('meas', m.id);
-      } else {
-        generateAndSharePDF('meas', m.id);
-      }
-    } else {
-      showToast('⚠️ Нет данных для экспорта');
-    }
-  } 
-  // Для коммерческого предложения
-  else {
-    if (!currentCalc) return showToast('⚠️ Сначала выполните расчёт');
-    if (action === 'download' || action === 'save') {
-      generateAndDownloadPDF('cost');
-    } else {
-      generateAndSharePDF('cost');
-    }
-  }
-}
 
 // Экспортируем функцию глобально
 window.startPDF = startPDF;
 console.log('✅ startPDF wrapper exported');
 
 // === 📄 ОБЁРТКА ДЛЯ КНОПОК MODAL (исправляет onclick) ===
-function startPDF(action) {
-  const title = document.getElementById('modalTitle')?.textContent || '';
-  const isMeas = title.includes('Лист замера');
-  if (isMeas) {
-    const db = getDB(); const m = db[db.length - 1];
-    if (m?.id) action === 'download' ? generateAndDownloadPDF('meas', m.id) : generateAndSharePDF('meas', m.id);
-    else showToast('⚠️ Нет данных');
-  } else {
-    if (!currentCalc) return showToast('⚠️ Сначала выполните расчёт');
-    action === 'download' ? generateAndDownloadPDF('cost') : generateAndSharePDF('cost');
-  }
-}
 window.startPDF = startPDF;
 
 // === 📄 ПРОСТАЯ ПЕЧАТЬ (открывает print.html) ===
@@ -621,25 +579,20 @@ window.showCostPDFModal = function() {
 };
 
 // === 📄 PDF: Обёртка для кнопок модального окна (фикс onclick) ===
-function startPDF(action) {
-  console.log('[PDF] startPDF called:', action);
-  if (!window.pdfData || !window.pdfData.blob) {
-    console.error('[PDF] No blob available');
-    return showToast('⚠️ Файл не создан');
-  }
-  
-  window.pdfData.pendingAction = action;
-  const url = URL.createObjectURL(window.pdfData.blob);
-  const file = new File([window.pdfData.blob], window.pdfData.name, { type: 'application/pdf' });
-  
-  if (action === 'share' && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-    navigator.share({ files: [file], title: window.pdfData.name, text: 'Документ из Стяжка Pro' })
-      .then(() => showToast('📤 Отправлено'))
-      .catch(() => { console.log('[PDF] Share cancelled, using fallback'); executeFallback(url); });
-  } else { 
-    executeFallback(url); 
-  }
-}
 // Экспортируем в window для onclick из HTML
 window.startPDF = startPDF;
 console.log('[PDF] startPDF exported to window');
+
+// === 📄 PDF: Обработчик кнопок модального окна ===
+function startPDF(action) {
+  if (!window.pdfData || !window.pdfData.blob) return showToast('⚠️ Файл не создан');
+  window.pdfData.pendingAction = action;
+  const url = URL.createObjectURL(window.pdfData.blob);
+  const file = new File([window.pdfData.blob], window.pdfData.name, { type: 'application/pdf' });
+  if (action === 'share' && navigator.share && navigator.canShare({ files: [file] })) {
+    navigator.share({ files: [file], title: window.pdfData.name, text: 'Документ из Стяжка Pro' })
+      .then(() => showToast('📤 Отправлено'))
+      .catch(() => executeFallback(url));
+  } else { executeFallback(url); }
+}
+window.startPDF = startPDF;

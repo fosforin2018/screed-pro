@@ -619,3 +619,27 @@ window.showCostPDFModal = function() {
   if (!window.currentCalc) return showToast('⚠️ Сначала выполните расчёт');
   openPrintPage('cost');
 };
+
+// === 📄 PDF: Обёртка для кнопок модального окна (фикс onclick) ===
+function startPDF(action) {
+  console.log('[PDF] startPDF called:', action);
+  if (!window.pdfData || !window.pdfData.blob) {
+    console.error('[PDF] No blob available');
+    return showToast('⚠️ Файл не создан');
+  }
+  
+  window.pdfData.pendingAction = action;
+  const url = URL.createObjectURL(window.pdfData.blob);
+  const file = new File([window.pdfData.blob], window.pdfData.name, { type: 'application/pdf' });
+  
+  if (action === 'share' && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+    navigator.share({ files: [file], title: window.pdfData.name, text: 'Документ из Стяжка Pro' })
+      .then(() => showToast('📤 Отправлено'))
+      .catch(() => { console.log('[PDF] Share cancelled, using fallback'); executeFallback(url); });
+  } else { 
+    executeFallback(url); 
+  }
+}
+// Экспортируем в window для onclick из HTML
+window.startPDF = startPDF;
+console.log('[PDF] startPDF exported to window');

@@ -160,3 +160,42 @@ input:checked + .slider:before { transform: translateX(20px); }
   .pdf-info-strip { flex-wrap: wrap; }
   .pdf-info-strip-item { min-width: 45%; }
 }
+
+/* Увеличенные кнопки действий в архиве */
+.saved-actions button {
+  padding: 10px 14px !important;
+  font-size: 16px !important;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 8px !important;
+  margin-right: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+.saved-actions button:active {
+  transform: scale(0.92);
+  opacity: 0.8;
+}
+
+.saved-actions .btn-edit {
+  background: rgba(245, 158, 11, 0.2) !important;
+  color: #d97706 !important;
+}
+
+.saved-actions .btn-calc {
+  background: rgba(59, 130, 246, 0.2) !important;
+  color: #2563eb !important;
+}
+
+.saved-actions .btn-pdf-m {
+  background: rgba(16, 185, 129, 0.2) !important;
+  color: #059669 !important;
+}
+
+.saved-actions .btn-del {
+  background: rgba(239, 68, 68, 0.2) !important;
+  color: #ef4444 !important;
+}

@@ -185,7 +185,7 @@ function renderHistory(){
   list.innerHTML = db.map(m=>{
     const c=m.corrections||{globalMm:0,perRoomMm:0,enabled:false};
     const hint = c.enabled ? ` • 🔧 ${c.globalMm>0?'+':''}${c.globalMm}/${c.perRoomMm>0?'+':''}${c.perRoomMm}мм` : '';
-    return `<li class="saved-item"><div class="saved-address">📍 ${m.address}</div><div class="saved-client">👤 ${m.client||'Не указан'}</div><div class="saved-meta">${m.date||''} · ${m.rooms.length} комн. · ${m.totalArea.toFixed(1)} м² · ${m.avgLayer.toFixed(1)} см${hint}</div><div class="saved-actions"><button class="btn-edit" onclick="loadMeasurement('${m.id}')">✏️</button><button class="btn-calc" onclick="window.calcFromArchive('${m.id}')">💰</button><button class="btn-pdf-m" onclick="showMeasPDFModal('${m.id}')">📄</button><button class="btn-del" onclick="deleteMeasurement('${m.id}')">🗑</button></div></li>`;
+    return `<li class="saved-item"><div class="saved-address">📍 ${m.address}</div><div class="saved-client">👤 ${m.client||'Не указан'}</div><div class="saved-meta">${m.date||''} · ${m.rooms.length} комн. · ${m.totalArea.toFixed(1)} м² · ${m.avgLayer.toFixed(1)} см${hint}</div><div class="saved-actions"><button class="btn-edit" onclick="window.loadMeasurement('${m.id}')">✏️ Редактировать</button><button class="btn-calc" onclick="window.calcFromArchive('${m.id}')">💰 Расчёт</button><button class="btn-pdf-m" onclick="window.showMeasPDFModal('${m.id}')">📄 Лист замера</button><button class="btn-del" onclick="window.deleteMeasurement('${m.id}')">🗑 Удалить</button></div></li>`;
   }).join('');
 }
 
@@ -529,3 +529,5 @@ window.clearAllData = clearAllData;
 window.setupMeasPDFSignature = setupMeasPDFSignature;
 window.setupCostPDFSignature = setupCostPDFSignature;
 window.setupPDFDocNumbers = setupPDFDocNumbers;
+window.showMeasPDFModal = showMeasPDFModal;
+window.showCostPDFModal = showCostPDFModal;

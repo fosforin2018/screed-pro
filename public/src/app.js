@@ -546,3 +546,39 @@ window.saveSettings = saveSettings;
 window.clearAllData = clearAllData;
 
 console.log('✅ All functions exported to window');
+
+// === 📄 PDF: ОБЁРТКА ДЛЯ СТАТИЧЕСКИХ КНОПОК В HTML (совместимость) ===
+function startPDF(action) {
+  console.log('🔄 startPDF wrapper called:', action);
+  
+  const title = document.getElementById('modalTitle')?.textContent || '';
+  const isMeas = title.includes('Лист замера');
+  
+  // Для листа замера
+  if (isMeas) {
+    const db = getDB();
+    const m = db[db.length - 1]; // Берём последний сохранённый замер
+    if (m && m.id) {
+      if (action === 'download' || action === 'save') {
+        generateAndDownloadPDF('meas', m.id);
+      } else {
+        generateAndSharePDF('meas', m.id);
+      }
+    } else {
+      showToast('⚠️ Нет данных для экспорта');
+    }
+  } 
+  // Для коммерческого предложения
+  else {
+    if (!currentCalc) return showToast('⚠️ Сначала выполните расчёт');
+    if (action === 'download' || action === 'save') {
+      generateAndDownloadPDF('cost');
+    } else {
+      generateAndSharePDF('cost');
+    }
+  }
+}
+
+// Экспортируем функцию глобально
+window.startPDF = startPDF;
+console.log('✅ startPDF wrapper exported');

@@ -505,3 +505,106 @@ window.saveSettings = saveSettings;
 window.clearAllData = clearAllData;
 
 console.log('✅ All functions exported to window');
+
+// === HTML ОТЧЁТ ВМЕСТО PDF ===
+function showMeasPDFModal(id) {
+  // Открываем HTML-отчёт в новом окне
+  const url = `report.html?type=meas&id=${id}`;
+  window.open(url, '_blank');
+  showToast('📄 Отчёт открыт в новой вкладке');
+}
+
+function showCostPDFModal() {
+  if (!currentCalc) return showToast('⚠️ Сначала выполните расчёт');
+  
+  // Для КП создаём простой текстовый отчёт
+  const {m, s, area, layer, total, ppm, sandB, sandC, cemB, cemC, fibKg, fibC, filmC, meshC, totTons, trips, delC, liftC, labC} = currentCalc;
+  
+  const text = `
+КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ
+№${Math.floor(1000 + Math.random() * 9000)} от ${new Date().toLocaleDateString('ru-RU')}
+
+Объект: ${m.address}
+Площадь: ${area.toFixed(2)} м²
+Слой: ${layer.toFixed(1)} см
+Цена за м²: ${ppm.toFixed(0)} ₽
+
+─────────────────────────
+МАТЕРИАЛЫ:
+─────────────────────────
+Песок: ${sandB} меш. × ${s.sandPrice} ₽ = ${sandC.toLocaleString('ru-RU')} ₽
+Цемент: ${cemB} меш. × ${s.cementPrice} ₽ = ${cemC.toLocaleString('ru-RU')} ₽
+Фибра: ${fibKg.toFixed(2)} кг × ${s.fiberPrice} ₽ = ${fibC.toFixed(0)} ₽
+Плёнка: ${area.toFixed(2)} м² × ${s.filmPrice} ₽ = ${filmC.toFixed(0)} ₽
+${s.meshEnabled ? `Сетка: ${(s.meshArea > 0 ? s.meshArea : area).toFixed(2)} м² × ${s.meshPrice} ₽ = ${meshC.toLocaleString('ru-RU')} ₽` : ''}
+
+─────────────────────────
+ЛОГИСТИКА:
+─────────────────────────
+Доставка: ${trips} рейс. × ${s.deliveryPrice} ₽ = ${delC.toLocaleString('ru-RU')} ₽
+Подъём: ${Math.ceil(totTons)} т × ${s.liftPrice} ₽ = ${liftC.toLocaleString('ru-RU')} ₽
+
+─────────────────────────
+РАБОТА:
+─────────────────────────
+Стяжка: ${area.toFixed(2)} м² × ${s.laborPrice} ₽/м² = ${labC.toLocaleString('ru-RU')} ₽
+
+═════════════════════════
+ИТОГО: ${total.toLocaleString('ru-RU')} ₽
+═════════════════════════
+
+Действительно 14 дней
+  `.trim();
+
+  // Показываем в модальном окне с возможностью копирования
+  showCostReportModal(text);
+}
+
+function showCostReportModal(text) {
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  `;
+  
+  modal.innerHTML = `
+    <div style="
+      background: white;
+      border-radius: 12px;
+      padding: 25px;
+      max-width: 500px;
+      width: 100%;
+      max-height: 80vh;
+      overflow-y: auto;
+      font-family: monospace;
+      white-space: pre-wrap;
+      line-height: 1.5;
+    ">${text}</div>
+  `;
+  
+  const actions = document.createElement('div');
+  actions.style.cssText = 'display:flex; gap:10px; margin-top:20px; justify-content:center;';
+  actions.innerHTML = `
+    <button class="btn btn-primary" style="padding:12px 20px; background:#2563eb; color:white; border:none; border-radius:8px; cursor:pointer;">📋 Копировать</button>
+    <button class="btn btn-secondary" style="padding:12px 20px; background:#f1f5f9; color:#475569; border:none; border-radius:8px; cursor:pointer;">Закрыть</button>
+  `;
+  
+  actions.children[0].onclick = () => {
+    navigator.clipboard.writeText(text).then(() => {
+      showToast('📋 Скопировано!');
+    });
+  };
+  
+  actions.children[1].onclick = () => {
+    document.body.removeChild(modal);
+  };
+  
+  modal.querySelector('div').appendChild(actions);
+  document.body.appendChild(modal);
+}

@@ -276,31 +276,24 @@ function showMeasPDFModal(id){
 }
 
 function showCostPDFModal(){
-  console.log('💰 showCostPDFModal called');
-  if(!currentCalc) return showToast('⚠️ Сначала выполните расчёт');
+  if(!currentCalc || !currentCalc.m) return showToast('⚠️ Сначала выполните расчёт');
+  console.log('[PDF] Opening cost PDF, data:', currentCalc);
   
   const modal = document.getElementById('pdfModal');
-  if(!modal) {
-    console.error('❌ Modal element not found!');
-    return showToast('⚠️ Ошибка интерфейса');
-  }
+  if(!modal) return showToast('⚠️ Ошибка интерфейса');
   
   document.getElementById('modalTitle').textContent='💰 Коммерческое предложение';
-  document.getElementById('modalText').textContent='Нажмите кнопку для создания файла';
-  
-  // Заполняем данные PDF
-  fillCostPDF();
-  
-  // Показываем кнопки
-  const actions = document.getElementById('modalActions');
-  actions.innerHTML = `
-    <button class="modal-btn modal-btn-primary" onclick="generateAndDownloadPDF('cost')">📥 Скачать PDF</button>
-    <button class="modal-btn modal-btn-success" onclick="generateAndSharePDF('cost')">📤 Отправить</button>
-    <button class="modal-btn" onclick="closeModal()">Отмена</button>
-  `;
-  
+  document.getElementById('modalText').textContent='Нажмите кнопку для создания файла');
   modal.classList.add('show');
-  showToast('✅ Окно открыто');
+  
+  document.getElementById('modalActions').querySelector('.modal-btn-primary').onclick = async () => {
+    const ok = await preparePDFData('cost');
+    if(ok) startPDF('download');
+  };
+  document.getElementById('modalActions').querySelector('.modal-btn-success').onclick = async () => {
+    const ok = await preparePDFData('cost');
+    if(ok) startPDF('share');
+  };
 }
 
 function fillMeasPDF(m){
